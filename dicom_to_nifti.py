@@ -16,7 +16,7 @@ import SimpleITK as sitk
 # ============================================================
 # Configuration:
 # ============================================================
-DICOM_DIR = r"C:\Users\radstudie\Desktop\El_Phantom\data\ProtocolModel_Mono_70keV_Qr40f(3)_0.4_(0.4)_[A,1]_0"
+DICOM_DIR = r"C:\Users\Laura\Desktop\El_Phantom\data\ProtocolModel_Mono_70keV_Qr40f(3)_0.4_(0.4)_[A,1]_0"
 TARGET_SPACING = (1.0, 1.0, 1.5)  # target voxel size in mm
 OUTPUT_DIR = os.path.dirname(DICOM_DIR)
 

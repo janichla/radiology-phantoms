@@ -16,7 +16,7 @@ from totalsegmentator.python_api import totalsegmentator
 # ============================================================
 # Configuration:
 # ============================================================
-DICOM_DIR = r"C:\Users\radstudie\Desktop\El_Phantom\data\ProtocolModel_Mono_70keV_Qr40f(3)_0.4_(0.4)_[A,1]_0"
+DICOM_DIR = r"C:\Users\Laura\Desktop\El_Phantom\data\ProtocolModel_Mono_70keV_Qr40f(3)_0.4_(0.4)_[A,1]_0"
 INPUT_FILE = os.path.join(os.path.dirname(DICOM_DIR), os.path.basename(DICOM_DIR) + "_resampled.nii.gz")
 OUTPUT_DIR = os.path.join(os.path.dirname(DICOM_DIR), "segmentations")
 
