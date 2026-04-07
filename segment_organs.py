@@ -16,14 +16,18 @@ from totalsegmentator.python_api import totalsegmentator
 # ============================================================
 # Configuration:
 # ============================================================
+
+# input path of DICOM file
 DICOM_DIR = r"C:\Users\Laura\Desktop\El_Phantom\data\ProtocolModel_Mono_70keV_Qr40f(3)_0.4_(0.4)_[A,1]_0"
+
+# input path of NIfTI file
 INPUT_FILE = os.path.join(os.path.dirname(DICOM_DIR), os.path.basename(DICOM_DIR) + "_resampled.nii.gz")
+
+# output path of segmentation mask file
 OUTPUT_DIR = os.path.join(os.path.dirname(DICOM_DIR), "segmentations")
 
-# ============================================================
 # Available organs grouped by category
 # Format: "Display Name": "totalsegmentator_id"
-# ============================================================
 ORGAN_CATEGORIES = {
     "Organe": {
         "Leber": "liver",
@@ -94,14 +98,14 @@ ORGAN_CATEGORIES = {
     },
 }
 
-
+# 
 def get_roi_ids(value):
     """Converts organ value(s) to a flat list of TotalSegmentator IDs."""
     if isinstance(value, list):
         return value
     return [v.strip() for v in value.split(",")]
 
-
+# shows categories with number of structures
 def show_categories():
     """Shows numbered list of categories."""
     print("\nAvailable categories:")
@@ -123,7 +127,6 @@ def show_organs(category_name):
     for i, name in enumerate(organ_names, 1):
         print(f"  [{i}] {name}")
     return organ_names
-
 
 def select_from_menu(prompt, max_val, allow_multi=True):
     """Gets user selection (single number or comma-separated)."""

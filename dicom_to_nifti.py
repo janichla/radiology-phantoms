@@ -5,8 +5,6 @@ Workflow:
 1. Use SimpleITK to convert DICOM to NIfTI (preserves orientation correctly)
 2. Resample the volume to 1x1x1.5mm spacing
 3. Save as compressed NIfTI (.nii.gz)
-
-See NOTES.md for background on why we use SimpleITK instead of a custom converter.
 """
 
 import os
@@ -39,7 +37,7 @@ def read_dicom_series(dicom_dir):
         print("ERROR: No DICOM files found!")
         sys.exit(1)
 
-    # 
+    # pass ordered file paths to reader
     reader.SetFileNames(dicom_names)
 
     # build and return SimpleITK image object
@@ -50,7 +48,7 @@ def read_dicom_series(dicom_dir):
 def resample_image(image, target_spacing):
     """Resamples a SimpleITK image to the target spacing using linear interpolation."""
 
-    # get spacing (pixel spacing in mm for columns/rows/slices) and size (number of pixels in columns/rows/slices)
+    # get spacing (voxel sie in mm) and size (number of voxels) for each dimension 
     original_spacing = image.GetSpacing()
     original_size = image.GetSize()
 
@@ -58,7 +56,7 @@ def resample_image(image, target_spacing):
     print(f"  Current size:    {original_size[0]} x {original_size[1]} x {original_size[2]}")
     print(f"  Target spacing:  {target_spacing[0]:.1f} x {target_spacing[1]:.1f} x {target_spacing[2]:.1f} mm")
 
-    # calculate new size based on target spacing (osz * ospc gibt die gesamtgröße, das wird dann durch das targetspacing geteilt und dann erhält man die targetsize. diese wird noch gerundet auf eine ganze zahl)
+    # calculate new size: (original size * original spacing) / target spacing = new number of voxels per dimension, rounded to int
     new_size = [int(round(osz * ospc / tspc)) for osz, ospc, tspc in zip(original_size, original_spacing, target_spacing)]
 
     print(f"  New size:        {new_size[0]} x {new_size[1]} x {new_size[2]}")
