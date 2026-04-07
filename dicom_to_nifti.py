@@ -16,25 +16,41 @@ import SimpleITK as sitk
 # ============================================================
 # Configuration:
 # ============================================================
+
+# input path of DICOM file
 DICOM_DIR = r"C:\Users\Laura\Desktop\El_Phantom\data\ProtocolModel_Mono_70keV_Qr40f(3)_0.4_(0.4)_[A,1]_0"
-TARGET_SPACING = (1.0, 1.0, 1.5)  # target voxel size in mm
+
+# target voxel spacing in mm in columns/rows/slices
+TARGET_SPACING = (1.0, 1.0, 1.5)
+
+# output path of NIfTI file
 OUTPUT_DIR = os.path.dirname(DICOM_DIR)
 
 
 def read_dicom_series(dicom_dir):
     """Reads a DICOM series using SimpleITK. Returns a SimpleITK image."""
+    
+    # create Reader
     reader = sitk.ImageSeriesReader()
+
+    # ensure files are ordered in spatial order
     dicom_names = reader.GetGDCMSeriesFileNames(dicom_dir)
     if not dicom_names:
         print("ERROR: No DICOM files found!")
         sys.exit(1)
+
+    # 
     reader.SetFileNames(dicom_names)
+
+    # build and return SimpleITK image object
     image = reader.Execute()
     return image
 
 
 def resample_image(image, target_spacing):
     """Resamples a SimpleITK image to the target spacing using linear interpolation."""
+
+    # get spacing (pixel spacing in mm for columns/rows/slices) and size (number of pixels in columns/rows/slices)
     original_spacing = image.GetSpacing()
     original_size = image.GetSize()
 
@@ -42,14 +58,16 @@ def resample_image(image, target_spacing):
     print(f"  Current size:    {original_size[0]} x {original_size[1]} x {original_size[2]}")
     print(f"  Target spacing:  {target_spacing[0]:.1f} x {target_spacing[1]:.1f} x {target_spacing[2]:.1f} mm")
 
-    # Calculate new size based on target spacing
-    new_size = [
-        int(round(osz * ospc / tspc))
-        for osz, ospc, tspc in zip(original_size, original_spacing, target_spacing)
-    ]
+    # calculate new size based on target spacing (osz * ospc gibt die gesamtgröße, das wird dann durch das targetspacing geteilt und dann erhält man die targetsize. diese wird noch gerundet auf eine ganze zahl)
+    new_size = [int(round(osz * ospc / tspc)) for osz, ospc, tspc in zip(original_size, original_spacing, target_spacing)]
+
     print(f"  New size:        {new_size[0]} x {new_size[1]} x {new_size[2]}")
 
+    # create Resampler
     resampler = sitk.ResampleImageFilter()
+
+
+    # set output parameters and linear interpolator
     resampler.SetOutputSpacing(target_spacing)
     resampler.SetSize(new_size)
     resampler.SetOutputDirection(image.GetDirection())
@@ -57,13 +75,14 @@ def resample_image(image, target_spacing):
     resampler.SetInterpolator(sitk.sitkLinear)
     resampler.SetDefaultPixelValue(-1000)  # air for out-of-bounds
 
+    # build and return resampled SimpleITK image
     resampled = resampler.Execute(image)
     return resampled
 
 
 def main():
     print("=" * 60)
-    print("DICOM to NIfTI Converter (SimpleITK + resampling)")
+    print("DICOM to NIfTI Converter")
     print("=" * 60)
 
     # Step 1: Read DICOM series
@@ -79,15 +98,12 @@ def main():
     output_path = os.path.join(OUTPUT_DIR, os.path.basename(DICOM_DIR) + "_resampled.nii.gz")
     print(f"\n[3/3] Saving NIfTI file...")
     sitk.WriteImage(resampled, output_path)
-    file_size_mb = os.path.getsize(output_path) / (1024 * 1024)
     print(f"  Saved: {output_path}")
-    print(f"  File size: {file_size_mb:.1f} MB")
 
     print(f"\n{'=' * 60}")
     print("Finished! Use this file with segment_organs.py:")
     print(f"  {output_path}")
     print("=" * 60)
-
 
 if __name__ == "__main__":
     main()
