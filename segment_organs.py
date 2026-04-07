@@ -17,7 +17,7 @@ from totalsegmentator.python_api import totalsegmentator
 # Configuration:
 # ============================================================
 
-# input path of DICOM file
+# input path of DICOM directory
 DICOM_DIR = r"C:\Users\Laura\Desktop\El_Phantom\data\ProtocolModel_Mono_70keV_Qr40f(3)_0.4_(0.4)_[A,1]_0"
 
 # input path of NIfTI file
@@ -98,14 +98,14 @@ ORGAN_CATEGORIES = {
     },
 }
 
-# 
+# get flat list of totalsegmentator IDs
 def get_roi_ids(value):
     """Converts organ value(s) to a flat list of TotalSegmentator IDs."""
     if isinstance(value, list):
         return value
     return [v.strip() for v in value.split(",")]
 
-# shows categories with number of structures
+# print list of all categories with their structure count
 def show_categories():
     """Shows numbered list of categories."""
     print("\nAvailable categories:")
@@ -116,7 +116,7 @@ def show_categories():
         print(f"  [{i}] {cat} ({count} structures)")
     return categories
 
-
+# prints list of organs in a category, with option [0] to select all
 def show_organs(category_name):
     """Shows numbered list of organs in a category."""
     organs = ORGAN_CATEGORIES[category_name]
@@ -128,6 +128,7 @@ def show_organs(category_name):
         print(f"  [{i}] {name}")
     return organ_names
 
+# get numeric input from user
 def select_from_menu(prompt, max_val, allow_multi=True):
     """Gets user selection (single number or comma-separated)."""
     while True:
@@ -149,6 +150,8 @@ def select_from_menu(prompt, max_val, allow_multi=True):
 
 def run_totalsegmentator(roi_subset):
     """Runs TotalSegmentator with the selected organs using the Python API."""
+    
+    # create output directory
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     print(f"\n{'=' * 60}")
@@ -159,16 +162,15 @@ def run_totalsegmentator(roi_subset):
     print(f"  Count:  {len(roi_subset)} structure(s)")
     print(f"{'=' * 60}\n")
 
+    # start time 
     start_time = time.time()
     print(f"[{time.strftime('%H:%M:%S')}] Loading model...")
 
     try:
-        totalsegmentator(
-            input=INPUT_FILE,
-            output=OUTPUT_DIR,
-            roi_subset=roi_subset,
-        )
+        # execute totalsegmentator
+        totalsegmentator(input=INPUT_FILE, output=OUTPUT_DIR, roi_subset=roi_subset)
 
+        # calculate segmentation time
         elapsed = time.time() - start_time
         minutes = int(elapsed // 60)
         seconds = int(elapsed % 60)
@@ -209,11 +211,7 @@ def main():
 
     # Step 2: Select organ(s)
     organ_names = show_organs(selected_category)
-    selection = select_from_menu(
-        "Select organ (number, or comma-separated for multiple, 0 for all)",
-        len(organ_names),
-        allow_multi=True
-    )
+    selection = select_from_menu("Select organ (number, or comma-separated for multiple, 0 for all)", len(organ_names), allow_multi=True)
 
     # Build list of TotalSegmentator IDs
     organs = ORGAN_CATEGORIES[selected_category]

@@ -17,27 +17,36 @@ from scipy import ndimage
 from skimage import measure
 import trimesh
 
-# =======================================================pyh=====
+# ============================================================
 # Configuration:
 # ============================================================
+
+# input directory with segmentation files
 SEGMENTATION_DIR = r"C:\Users\Laura\Desktop\El_Phantom\data\segmentations"
+
+# output directory 
 OUTPUT_DIR = r"C:\Users\Laura\Desktop\El_Phantom\data\molds"
-WALL_THICKNESS_MM = 2.50  # 2.5 mm
-UPSAMPLE_SPACING = (0.75, 0.75, 0.75)  # upsample mask for smoother STL
 
-# Split axis per organ: 0=x (links/rechts), 1=y (vorne/hinten), 2=z (oben/unten)
-# z = Querschnitt (gut für kompakte Organe wie Leber)
-# x oder y = Längsschnitt (gut für längliche Organe wie Trachea)
-SPLIT_AXIS = {
-    "liver": 2,      # Querschnitt
-    "trachea": 1,    # Längsschnitt
-}
-DEFAULT_SPLIT_AXIS = 2
+# thickness of wall in mm
+WALL_THICKNESS_MM = 2.50 
 
-# Pin & socket dimensions (mm)
+# target voxel size in mm after upsamling (smaller/more voxel/smoother surface)
+UPSAMPLE_SPACING = (0.75, 0.75, 0.75)
+
+# pin dimensions in mm
 PIN_RADIUS = 2.5       # pin radius
 PIN_HEIGHT = 5.0       # how deep the pin goes
 PIN_CLEARANCE = 0.3    # gap between pin and socket for easy fit
+
+# calculate split_axis
+def detect_split_axis(mask, spacing):
+    """Finds the shortest axis of the mask in mm and returns its index. Splitting along the shortest axis gives the best halves (e.g. two half-shells for tubes)."""
+    # get all organ voxels (nonzero voxels)
+    nonzero = np.argwhere(mask > 0)
+    # find shortest axis -> get highest and lowest value for each koordinate and calculate 
+    extent_mm = (nonzero.max(axis=0) - nonzero.min(axis=0)) * np.array(spacing)
+    # cut perpendicular to the shortest axis
+    return int(np.argmin(extent_mm))
 
 
 def load_mask(nifti_path):
@@ -229,7 +238,7 @@ def process_organ(nifti_path, output_dir, wall_mm):
     mold = create_mold_volume(mask, spacing, wall_mm)
 
     # Step 3: Split into halves
-    axis = SPLIT_AXIS.get(organ_name, DEFAULT_SPLIT_AXIS)
+    axis = detect_split_axis(mask, spacing)
     axis_names = {0: "x (links/rechts)", 1: "y (vorne/hinten)", 2: "z (oben/unten)"}
     print(f"\n[3/5] Splitting along {axis_names[axis]}...")
     bottom, top, mid = split_mold(mold, spacing, axis=axis)
