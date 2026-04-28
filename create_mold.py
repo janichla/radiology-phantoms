@@ -3,7 +3,7 @@ NIfTI Segmentation Mask → 3D-printable Mold (STL).
 
 Workflow:
 1. Load binary organ mask from NIfTI
-2. Dilate mask by wall thickness (1cm) to create outer boundary
+2. Dilate mask by wall thickness to create outer boundary
 3. Subtract organ from outer boundary → hollow mold
 4. Split into two halves (top/bottom) for filling and removal
 5. Export each half as STL for 3D printing
@@ -30,7 +30,7 @@ OUTPUT_DIR = r"C:\Users\Laura\Desktop\El_Phantom\data\molds"
 # thickness of wall in mm
 WALL_THICKNESS_MM = 2.50 
 
-# target voxel size in mm after upsamling (smaller/more voxel/smoother surface)
+# target spacing in mm after upsamling (smaller/more voxel/smoother surface)
 UPSAMPLE_SPACING = (0.75, 0.75, 0.75)
 
 # pin dimensions in mm
@@ -38,7 +38,50 @@ PIN_RADIUS = 2.5       # pin radius
 PIN_HEIGHT = 5.0       # how deep the pin goes
 PIN_CLEARANCE = 0.3    # gap between pin and socket for easy fit
 
-# calculate split_axis
+def load_mask(nifti_path):
+    """Loads a NIfTI file and returns the binary mask and voxel spacing."""
+    # load reads the header (lazy loading)
+    img = nib.load(nifti_path)
+    # loads voxel data
+    data = img.get_fdata().astype(np.uint8)
+    spacing = np.array(img.header.get_zooms()[:3])
+    print(f"Dimensions: {data.shape}")
+    print(f"Spacing: {spacing[0]:.2f} x {spacing[1]:.2f} x {spacing[2]:.2f} mm")
+
+    # # upsample to finer resolution for smoother surface
+    # target = np.array(UPSAMPLE_SPACING)
+    # zoom_factors = spacing / target
+    # data = ndimage.zoom(data, zoom_factors, order=1)
+    # spacing = target
+    # print(f"  Upsampled to: {data.shape}, spacing: {spacing[0]:.2f} x {spacing[1]:.2f} x {spacing[2]:.2f} mm")
+
+    # # light smoothing to remove staircase artifacts without losing shape
+    # sigma = [1.0 / sp for sp in spacing]  # ~1mm smoothing
+    # mask = ndimage.gaussian_filter(mask, sigma=sigma)
+    # mask = (mask > 0.4).astype(np.uint8)  # threshold back to binary
+
+    # print(f"  Non-zero voxels (after smoothing): {np.sum(data)}")
+    return data, tuple(spacing)
+
+
+def create_mold_volume(mask, spacing, wall_mm):
+    """Creates a mold volume by dilating the mask and subtracting the original."""
+    # create inverted mask for distance transform function
+    inverted_mask = (mask == 0)
+    # calculate euclidean distance from each empty voxel to nearest organ voxel
+    distance = ndimage.distance_transform_edt(inverted_mask, sampling=spacing)
+    # everything within wall thickness becomes the outer boundary
+    dilated = (distance <= wall_mm).astype(np.uint8)
+
+    # crate mold as dilated outer shell minus the organ cavity
+    mold = dilated - mask
+    # prevent uint8 underflow from substraction
+    mold = np.clip(mold, 0, 1).astype(np.uint8)
+
+    print(f"Mold voxels: {np.sum(mold)}")
+    return mold
+
+
 def detect_split_axis(mask, spacing):
     """Finds the shortest axis of the mask in mm and returns its index. Splitting along the shortest axis gives the best halves (e.g. two half-shells for tubes)."""
     # get all organ voxels (nonzero voxels)
@@ -47,60 +90,6 @@ def detect_split_axis(mask, spacing):
     extent_mm = (nonzero.max(axis=0) - nonzero.min(axis=0)) * np.array(spacing)
     # cut perpendicular to the shortest axis
     return int(np.argmin(extent_mm))
-
-
-def load_mask(nifti_path):
-    """Loads a NIfTI file and returns the binary mask and voxel spacing."""
-    img = nib.load(nifti_path)
-    data = img.get_fdata()
-    mask = (data > 0).astype(np.float32)
-    spacing = np.array(img.header.get_zooms()[:3])
-    print(f"  Mask shape: {mask.shape}")
-    print(f"  Voxel spacing: {spacing[0]:.2f} x {spacing[1]:.2f} x {spacing[2]:.2f} mm")
-
-    # Upsample to finer resolution for smoother surface
-    target = np.array(UPSAMPLE_SPACING)
-    zoom_factors = spacing / target
-    mask = ndimage.zoom(mask, zoom_factors, order=1)  # linear interpolation
-    spacing = target
-    print(f"  Upsampled to: {mask.shape}, spacing: {spacing[0]:.2f} x {spacing[1]:.2f} x {spacing[2]:.2f} mm")
-
-    # Light smoothing to remove staircase artifacts without losing shape
-    sigma = [1.0 / sp for sp in spacing]  # ~1mm smoothing
-    mask = ndimage.gaussian_filter(mask, sigma=sigma)
-    mask = (mask > 0.4).astype(np.uint8)  # threshold back to binary
-
-    print(f"  Non-zero voxels (after smoothing): {np.sum(mask)}")
-    return mask, tuple(spacing)
-
-
-def create_mold_volume(mask, spacing, wall_mm):
-    """Creates a mold volume by dilating the mask and subtracting the original."""
-    # Calculate dilation iterations per axis based on spacing
-    iterations_per_axis = [max(1, int(round(wall_mm / sp))) for sp in spacing]
-    print(f"  Dilation iterations (x,y,z): {iterations_per_axis}")
-
-    # Create anisotropic structuring element to account for non-uniform spacing
-    # We dilate each axis separately with the correct number of iterations
-    dilated = mask.copy()
-    for axis in range(3):
-        struct = np.zeros((3, 3, 3), dtype=bool)
-        slicing = [1, 1, 1]
-        for i in range(3):
-            slicing[i] = slice(None) if i == axis else 1
-        struct[tuple(slicing)] = True
-        dilated = ndimage.binary_dilation(dilated, structure=struct,
-                                          iterations=iterations_per_axis[axis])
-
-    dilated = dilated.astype(np.uint8)
-
-    # Mold = dilated outer shell minus the organ cavity
-    mold = dilated - mask
-    mold = np.clip(mold, 0, 1).astype(np.uint8)
-
-    print(f"  Mold voxels: {np.sum(mold)}")
-    return mold
-
 
 def volume_to_mesh(volume, spacing):
     """Converts a binary volume to a triangle mesh using marching cubes."""
@@ -222,7 +211,7 @@ def split_mold(mold_volume, spacing, axis=2):
 
 
 def process_organ(nifti_path, output_dir, wall_mm):
-    """Full pipeline for one organ: load → mold → split → STL."""
+    """Full pipeline for one organ: load → mold → split → STL"""
     organ_name = os.path.splitext(os.path.splitext(os.path.basename(nifti_path))[0])[0]
 
     print(f"\n{'=' * 60}")
@@ -277,7 +266,7 @@ def process_organ(nifti_path, output_dir, wall_mm):
 
 def main():
     print("=" * 60)
-    print("NIfTI Mask → 3D-printable Mold (STL)")
+    print("Convert NIfTI Mask to 3D-printable STL-File of Mold)")
     print(f"Wall thickness: {WALL_THICKNESS_MM} mm")
     print("=" * 60)
 
