@@ -82,14 +82,40 @@ def create_mold_volume(mask, spacing, wall_mm):
     return mold
 
 
-def detect_split_axis(mask, spacing):
-    """Finds the shortest axis of the mask in mm and returns its index. Splitting along the shortest axis gives the best halves (e.g. two half-shells for tubes)."""
+def detect_shortest_axis(mask, spacing):
+    """Finds the shortest axis of the mask in mm and returns its index."""
     # get all organ voxels (nonzero voxels)
     nonzero = np.argwhere(mask > 0)
-    # find shortest axis -> get highest and lowest value for each koordinate and calculate 
+    # find shortest axis (get highest and lowest value for each koordinate and calculate)
     extent_mm = (nonzero.max(axis=0) - nonzero.min(axis=0)) * np.array(spacing)
-    # cut perpendicular to the shortest axis
+    # get index of shortest axis
     return int(np.argmin(extent_mm))
+
+
+def split_mold(mold_volume, axis=2):
+    """Splits the mold into top and bottom halves along the given axis."""
+    # get indices with value 1
+    nonzero_indices = np.nonzero(mold_volume)[axis]
+    # calculate mid of organ
+    mid = int((nonzero_indices.min() + nonzero_indices.max()) // 2)
+    print(f"  Splitting at slice {mid} (of {mold_volume.shape[axis]}) — center of organ")
+
+    bottom = mold_volume.copy()
+    top = mold_volume.copy()
+
+    # Zero out the other half
+    if axis == 2:
+        bottom[:, :, mid:] = 0
+        top[:, :, :mid] = 0
+    elif axis == 1:
+        bottom[:, mid:, :] = 0
+        top[:, :mid, :] = 0
+    else:
+        bottom[mid:, :, :] = 0
+        top[:mid, :, :] = 0
+
+    return bottom, top, mid
+
 
 def volume_to_mesh(volume, spacing):
     """Converts a binary volume to a triangle mesh using marching cubes."""
@@ -186,29 +212,6 @@ def add_pins_and_sockets_voxel(bottom, top, spacing, axis, pin_positions):
     return bottom, top
 
 
-def split_mold(mold_volume, spacing, axis=2):
-    """Splits the mold into top and bottom halves along the given axis."""
-    # Split at the center of the organ
-    nonzero_indices = np.nonzero(mold_volume)[axis]
-    mid = int((nonzero_indices.min() + nonzero_indices.max()) // 2)
-    print(f"  Splitting at slice {mid} (of {mold_volume.shape[axis]}) — center of organ")
-
-    bottom = mold_volume.copy()
-    top = mold_volume.copy()
-
-    # Zero out the other half
-    if axis == 2:
-        bottom[:, :, mid:] = 0
-        top[:, :, :mid] = 0
-    elif axis == 1:
-        bottom[:, mid:, :] = 0
-        top[:, :mid, :] = 0
-    else:
-        bottom[mid:, :, :] = 0
-        top[:mid, :, :] = 0
-
-    return bottom, top, mid
-
 
 def process_organ(nifti_path, output_dir, wall_mm):
     """Full pipeline for one organ: load → mold → split → STL"""
@@ -227,10 +230,10 @@ def process_organ(nifti_path, output_dir, wall_mm):
     mold = create_mold_volume(mask, spacing, wall_mm)
 
     # Step 3: Split into halves
-    axis = detect_split_axis(mask, spacing)
+    axis = detect_shortest_axis(mask, spacing)
     axis_names = {0: "x (links/rechts)", 1: "y (vorne/hinten)", 2: "z (oben/unten)"}
     print(f"\n[3/5] Splitting along {axis_names[axis]}...")
-    bottom, top, mid = split_mold(mold, spacing, axis=axis)
+    bottom, top, mid = split_mold(mold, axis=axis)
 
     # Step 4: Add pin & socket locking system into voxel volumes
     has_both = np.sum(bottom) > 0 and np.sum(top) > 0
