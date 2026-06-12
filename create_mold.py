@@ -94,7 +94,7 @@ def detect_shortest_axis(mask, spacing):
 
 def split_mold(mold_volume, axis=2):
     """Splits the mold into top and bottom halves along the given axis."""
-    # get indices with value 1
+    # get indices with value 1 of shortest
     nonzero_indices = np.nonzero(mold_volume)[axis]
     # calculate mid of organ
     mid = int((nonzero_indices.min() + nonzero_indices.max()) // 2)

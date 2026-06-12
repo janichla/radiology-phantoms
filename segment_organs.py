@@ -2,7 +2,7 @@
 TotalSegmentator Organ Segmentation with interactive menu.
 
 Workflow:
-1. User selects a category (Organs, Bones, Vessels, Muscles)
+1. User selects a category (organs, lung & heart, bones, vessels, muscels)
 2. User selects specific organ(s) or all in category
 3. TotalSegmentator runs with --roi_subset for selected organs
 4. Output masks saved to segmentations folder
@@ -116,7 +116,7 @@ def show_categories():
         print(f"  [{i}] {cat} ({count} structures)")
     return categories
 
-# prints list of organs in a category, with option [0] to select all
+# print list of organs in a category, with option [0] to select all
 def show_organs(category_name):
     """Shows numbered list of organs in a category."""
     organs = ORGAN_CATEGORIES[category_name]

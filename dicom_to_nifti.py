@@ -11,19 +11,22 @@ import os
 import sys
 import SimpleITK as sitk
 
-# ============================================================
-# Configuration:
-# ============================================================
+###################
+#  CONFIGURATION  #
+###################
 
-# input path of DICOM file
+# input path of DICOM files
 DICOM_DIR = r"C:\Users\Laura\Desktop\El_Phantom\data\ProtocolModel_Mono_70keV_Qr40f(3)_0.4_(0.4)_[A,1]_0"
 
-# target voxel spacing in mm in columns/rows/slices
-TARGET_SPACING = (1.0, 1.0, 1.5)
+# # target voxel spacing in mm in columns/rows/slices
+# TARGET_SPACING = (1.0, 1.0, 1.5)
 
 # output path of NIfTI file
 OUTPUT_DIR = os.path.dirname(DICOM_DIR)
 
+######################
+#  HELPER FUNCTIONS  #
+######################
 
 def read_dicom_series(dicom_dir):
     """Reads a DICOM series using SimpleITK. Returns a SimpleITK image."""
@@ -48,7 +51,7 @@ def read_dicom_series(dicom_dir):
 def resample_image(image, target_spacing):
     """Resamples a SimpleITK image to the target spacing using linear interpolation."""
 
-    # get spacing (voxel sie in mm) and size (number of voxels) for each dimension 
+    # get spacing (voxel size in mm) and size (number of voxels) for each dimension 
     original_spacing = image.GetSpacing()
     original_size = image.GetSize()
 
@@ -63,7 +66,6 @@ def resample_image(image, target_spacing):
 
     # create Resampler
     resampler = sitk.ResampleImageFilter()
-
 
     # set output parameters and linear interpolator
     resampler.SetOutputSpacing(target_spacing)
@@ -83,10 +85,11 @@ def main():
     print("DICOM to NIfTI Converter")
     print("=" * 60)
 
-    # Step 1: Read DICOM series
+    # step 1: read DICOM series
     print(f"\n[1/3] Reading DICOM series from: {DICOM_DIR}")
     image = read_dicom_series(DICOM_DIR)
     print(f"  Found {image.GetSize()[2]} slices")
+    print(f"  ")
 
     # Step 2: Resample to target spacing
     print(f"\n[2/3] Resampling to {TARGET_SPACING[0]}x{TARGET_SPACING[1]}x{TARGET_SPACING[2]}mm...")
