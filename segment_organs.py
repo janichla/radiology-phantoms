@@ -2,7 +2,7 @@
 TotalSegmentator Organ Segmentation with interactive menu.
 
 Workflow:
-1. User selects a category (organs, lung & heart, bones, vessels, muscels)
+1. User selects a category (organs, lung & heart, bones, vessels, muscles)
 2. User selects specific organ(s) or all in category
 3. TotalSegmentator runs with --roi_subset for selected organs
 4. Output masks saved to segmentations folder
@@ -13,18 +13,18 @@ import sys
 import time
 from totalsegmentator.python_api import totalsegmentator
 
-# ============================================================
-# Configuration:
-# ============================================================
+###################
+#  CONFIGURATION  #
+###################
 
 # input path of DICOM directory
-DICOM_DIR = r"C:\Users\Laura\Desktop\El_Phantom\data\ProtocolModel_Mono_70keV_Qr40f(3)_0.4_(0.4)_[A,1]_0"
+DICOM_DIR = r"C:\Users\Laura\Desktop\El_Phantom\data\original data (dicom)\ProtocolModel_Mono_70keV_Qr40f(3)_0.4_(0.4)_[A,1]_0"
 
 # input path of NIfTI file
 INPUT_FILE = os.path.join(os.path.dirname(DICOM_DIR), os.path.basename(DICOM_DIR) + "_resampled.nii.gz")
 
 # output path of segmentation mask file
-OUTPUT_DIR = os.path.join(os.path.dirname(DICOM_DIR), "segmentations")
+OUTPUT_DIR = r"C:\Users\Laura\Desktop\El_Phantom\data\organ segmentations (nifti)"
 
 # Available organs grouped by category
 # Format: "Display Name": "totalsegmentator_id"

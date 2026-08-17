@@ -17,15 +17,15 @@ from scipy import ndimage
 from skimage import measure
 import trimesh
 
-# ============================================================
-# Configuration:
-# ============================================================
+###################
+#  CONFIGURATION  #
+###################
 
 # input directory with segmentation files
-SEGMENTATION_DIR = r"C:\Users\Laura\Desktop\El_Phantom\data\segmentations"
+SEGMENTATION_DIR = r"C:\Users\Laura\Desktop\El_Phantom\data\organ segmentations (nifti)"
 
 # output directory 
-OUTPUT_DIR = r"C:\Users\Laura\Desktop\El_Phantom\data\molds"
+OUTPUT_DIR = r"C:\Users\Laura\Desktop\El_Phantom\data\3d objects (stl)"
 
 # thickness of wall in mm
 WALL_THICKNESS_MM = 2.50 
@@ -38,6 +38,9 @@ PIN_RADIUS = 2.5       # pin radius
 PIN_HEIGHT = 5.0       # how deep the pin goes
 PIN_CLEARANCE = 0.3    # gap between pin and socket for easy fit
 
+# axis vessel tunnels run along; holes filled per-slice to keep cavity hollow (0=x, 1=y, 2=z)
+TUNNEL_FILL_AXIS = 1
+
 def load_mask(nifti_path):
     """Loads a NIfTI file and returns the binary mask and voxel spacing."""
     # load reads the header (lazy loading)
@@ -47,6 +50,14 @@ def load_mask(nifti_path):
     spacing = np.array(img.header.get_zooms()[:3])
     print(f"Dimensions: {data.shape}")
     print(f"Spacing: {spacing[0]:.2f} x {spacing[1]:.2f} x {spacing[2]:.2f} mm")
+
+    # fill vessel tunnels per-slice so the mold cavity stays fully hollow (no column)
+    before = int(data.sum())
+    for i in range(data.shape[TUNNEL_FILL_AXIS]):
+        sl = [slice(None)] * 3
+        sl[TUNNEL_FILL_AXIS] = i
+        data[tuple(sl)] = ndimage.binary_fill_holes(data[tuple(sl)])
+    print(f"  Filled {int(data.sum()) - before} tunnel voxel(s)")
 
     # # upsample to finer resolution for smoother surface
     # target = np.array(UPSAMPLE_SPACING)

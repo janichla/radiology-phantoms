@@ -16,10 +16,10 @@ import SimpleITK as sitk
 ###################
 
 # input path of DICOM files
-DICOM_DIR = r"C:\Users\Laura\Desktop\El_Phantom\data\ProtocolModel_Mono_70keV_Qr40f(3)_0.4_(0.4)_[A,1]_0"
+DICOM_DIR = r"C:\Users\Laura\Desktop\El_Phantom\data\original data (dicom)\ProtocolModel_Mono_70keV_Qr40f(3)_0.4_(0.4)_[A,1]_0"
 
-# # target voxel spacing in mm in columns/rows/slices
-# TARGET_SPACING = (1.0, 1.0, 1.5)
+# target voxel spacing in mm in columns/rows/slices
+TARGET_SPACING = (1.0, 1.0, 1.5)
 
 # output path of NIfTI file
 OUTPUT_DIR = os.path.dirname(DICOM_DIR)
@@ -85,11 +85,10 @@ def main():
     print("DICOM to NIfTI Converter")
     print("=" * 60)
 
-    # step 1: read DICOM series
+    # Step 1: Read DICOM series
     print(f"\n[1/3] Reading DICOM series from: {DICOM_DIR}")
     image = read_dicom_series(DICOM_DIR)
     print(f"  Found {image.GetSize()[2]} slices")
-    print(f"  ")
 
     # Step 2: Resample to target spacing
     print(f"\n[2/3] Resampling to {TARGET_SPACING[0]}x{TARGET_SPACING[1]}x{TARGET_SPACING[2]}mm...")

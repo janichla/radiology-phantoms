@@ -49,7 +49,16 @@ Probleme: - kein echter Einrast-Mechanismus -> nur durch Drucken sichtbar, ob da
 17/08/2026
 
 TO DO: 
-- load stl file in repo
-- remove small parts inside
+- load stl file in repo ✓
+- remove small part inside (vessel)  ✓
+-> scipy.ndimage has binary_fill_holes function in load_mask: füllt Löcher vor dem Aushöhlen
+- remove extension ✓
+-> https://www.youtube.com/watch?v=MQU1gBkTSsU
+-> meshmixer didn't work, idk why 
+-> one-time-script from claude
 - finish repo
+
+19/08/2026
+
+TO DO:
 - print new liver

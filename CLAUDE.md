@@ -23,13 +23,13 @@ python segment_organs.py       # step 2 (interactive menu)
 python create_mold.py          # step 3, processes every .nii.gz in SEGMENTATION_DIR
 ```
 
-The scripts hardcode a `C:\Users\Laura\Desktop\El_Phantom\data\...` path layout from the machine they were developed on — expect to update these per-machine/per-dataset. `dicom_to_nifti.py` and `segment_organs.py` derive their NIfTI/output paths from `DICOM_DIR`, so only that one constant needs editing there; `create_mold.py` has independent `SEGMENTATION_DIR`/`OUTPUT_DIR` constants.
+The scripts hardcode a `C:\Users\Laura\Desktop\El_Phantom\data\...` path layout from the machine they were developed on — expect to update these per-machine/per-dataset. `dicom_to_nifti.py` derives its NIfTI output path from `DICOM_DIR` (only that constant needs editing); `segment_organs.py` derives its input NIfTI from `DICOM_DIR` but writes to an independent `OUTPUT_DIR`; `create_mold.py` has independent `SEGMENTATION_DIR`/`OUTPUT_DIR` constants.
 
 `data/` (raw DICOM, NIfTI, segmentations, molds) is gitignored — it holds real scan data and generated artifacts. Never commit it.
 
 ## Environment
 
-A Python venv with GPU-enabled PyTorch is required for practical TotalSegmentator runtimes (CPU: ~10-30 min/segmentation vs GPU: ~1-2 min). `requirements.txt` only lists `SimpleITK` and `TotalSegmentator`; `create_mold.py` additionally needs `numpy`, `nibabel`, `scipy`, `scikit-image`, and `trimesh`, which are not currently captured there. Verify GPU is picked up with:
+A Python venv with GPU-enabled PyTorch is required for practical TotalSegmentator runtimes (CPU: ~10-30 min/segmentation vs GPU: ~1-2 min). `requirements.txt` captures all direct dependencies (`SimpleITK`, `TotalSegmentator`, `numpy`, `nibabel`, `scipy`, `scikit-image`, `trimesh`); PyTorch is pulled in by TotalSegmentator, but the CUDA build must be installed separately (see the note in `requirements.txt`). Verify GPU is picked up with:
 
 ```bash
 python -c "import torch; print(torch.cuda.is_available())"
