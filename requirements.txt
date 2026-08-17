@@ -1,2 +1,10 @@
 SimpleITK
 TotalSegmentator
+numpy
+nibabel
+scipy
+scikit-image
+trimesh
+
+# Hinweis: Für GPU-Beschleunigung PyTorch mit CUDA separat installieren:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121

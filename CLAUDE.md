@@ -46,4 +46,4 @@ If `False`, reinstall the CUDA build: `pip install torch torchvision --index-url
 ## Notes
 
 - `segment_organs.py` menu labels are in German (organ categories/names); the mapping to TotalSegmentator IDs is in `ORGAN_CATEGORIES`.
-- `NOTES.md` and `progress_documentation.md` are working notes in German. `progress_documentation.md` logs a first-layer print-defect investigation whose conclusion was that print-quality issues (bed adhesion, contact area, curved resting surfaces) are printer/slicer concerns, not mesh-generation bugs — worked around in the slicer (reorient part, add raft/skirt), not in this code.
+- `JOURNAL.md` holds working notes in German. It logs a first-layer print-defect investigation whose conclusion was that print-quality issues (bed adhesion, contact area, curved resting surfaces) are printer/slicer concerns, not mesh-generation bugs — worked around in the slicer (reorient part, add raft/brim), not in this code.
