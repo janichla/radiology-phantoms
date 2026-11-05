@@ -80,6 +80,10 @@ def resample_image(image, target_spacing):
     return resampled
 
 
+##############
+#  WORKFLOW  #
+##############
+
 def main():
     print("=" * 60)
     print("DICOM to NIfTI Converter")

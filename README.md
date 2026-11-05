@@ -23,10 +23,8 @@ DICOM folder
 [create_mold.py]     -->  molds/*_mold_{top,bottom,full}.stl
     |
     v
-Slice STLs in PrusaSlicer / Cura / Bambu Studio and 3D-print
+Open STLs in Bambu Studio and 3D-print
 ```
-
-Load the NIfTI/masks in 3D Slicer to inspect results.
 
 ## Setup
 

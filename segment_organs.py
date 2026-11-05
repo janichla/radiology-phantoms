@@ -98,6 +98,10 @@ ORGAN_CATEGORIES = {
     },
 }
 
+######################
+#  HELPER FUNCTIONS  #
+######################
+
 # get flat list of totalsegmentator IDs
 def get_roi_ids(value):
     """Converts organ value(s) to a flat list of TotalSegmentator IDs."""
@@ -188,6 +192,10 @@ def run_totalsegmentator(roi_subset):
         print(f"\nERROR: TotalSegmentator failed: {e}")
         sys.exit(1)
 
+
+##############
+#  WORKFLOW  #
+##############
 
 def main():
     print("=" * 60)

@@ -41,6 +41,10 @@ PIN_CLEARANCE = 0.3    # gap between pin and socket for easy fit
 # axis vessel tunnels run along; holes filled per-slice to keep cavity hollow (0=x, 1=y, 2=z)
 TUNNEL_FILL_AXIS = 1
 
+######################
+#  HELPER FUNCTIONS  #
+######################
+
 def load_mask(nifti_path):
     """Loads a NIfTI file and returns the binary mask and voxel spacing."""
     # load reads the header (lazy loading)
@@ -277,6 +281,10 @@ def process_organ(nifti_path, output_dir, wall_mm):
     size_mb = os.path.getsize(full_path) / (1024 * 1024)
     print(f"  Saved: {full_path} ({size_mb:.1f} MB)")
 
+
+##############
+#  WORKFLOW  #
+##############
 
 def main():
     print("=" * 60)
