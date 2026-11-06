@@ -30,15 +30,8 @@ Open STLs in Bambu Studio and 3D-print
 
 ```bash
 python -m venv venv
-.\venv\Scripts\activate        # every new terminal
+.\venv\Scripts\activate        
 pip install -r requirements.txt
-```
-
-For GPU-accelerated segmentation (recommended), install PyTorch with CUDA separately:
-
-```bash
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
-python -c "import torch; print(torch.cuda.is_available())"   # should print True
 ```
 
 ## Running
